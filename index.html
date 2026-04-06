@@ -46,44 +46,46 @@
       </header>
 
       <section class="controls-panel">
-        <label class="search-field" for="search-input">
-          <span class="search-field__icon" aria-hidden="true">&#9906;</span>
-          <input
-            id="search-input"
-            type="search"
-            autocomplete="off"
-            placeholder="Search emoji by name, alias, tag, or category..."
-          />
-        </label>
+        <div class="controls-panel__top">
+          <label class="search-field" for="search-input">
+            <span class="search-field__icon" aria-hidden="true">&#9906;</span>
+            <input
+              id="search-input"
+              type="search"
+              autocomplete="off"
+              placeholder="Search emoji by name, alias, tag, or category..."
+            />
+          </label>
 
-        <button class="ghost-button" id="clear-search" type="button">
-          Clear
-        </button>
-      </section>
-
-      <section class="toolbar">
-        <div class="stats-grid">
-          <article class="stat-card">
-            <p class="stat-card__value" id="total-count">0</p>
-            <p class="stat-card__label">Total emojis</p>
-          </article>
-          <article class="stat-card">
-            <p class="stat-card__value" id="visible-count">0</p>
-            <p class="stat-card__label">Visible now</p>
-          </article>
-          <article class="stat-card">
-            <p class="stat-card__value stat-card__value--small" id="active-view">
-              All
-            </p>
-            <p class="stat-card__label">Current filter</p>
-          </article>
+          <button class="ghost-button" id="clear-search" type="button">
+            Clear
+          </button>
         </div>
 
-        <div
-          class="category-row"
-          id="category-filters"
-          aria-label="Emoji categories"
-        ></div>
+        <div class="toolbar">
+          <div class="stats-grid">
+            <article class="stat-card">
+              <p class="stat-card__value" id="total-count">0</p>
+              <p class="stat-card__label">Total emojis</p>
+            </article>
+            <article class="stat-card">
+              <p class="stat-card__value" id="visible-count">0</p>
+              <p class="stat-card__label">Visible now</p>
+            </article>
+            <article class="stat-card">
+              <p class="stat-card__value stat-card__value--small" id="active-view">
+                All
+              </p>
+              <p class="stat-card__label">Current filter</p>
+            </article>
+          </div>
+
+          <div
+            class="category-row"
+            id="category-filters"
+            aria-label="Emoji categories"
+          ></div>
+        </div>
       </section>
 
       <main class="results-panel">
