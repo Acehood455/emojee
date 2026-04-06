@@ -1,4 +1,5 @@
 const DATA_SOURCE = "https://akhil-06.github.io/emoji_project/emojiList.js";
+const FLAG_ASSET_BASE = "https://twemoji.maxcdn.com/v/latest/svg";
 const numberFormatter = new Intl.NumberFormat("en-US");
 
 const state = {
@@ -6,7 +7,7 @@ const state = {
   filteredEmojis: [],
   activeCategory: "All",
   query: "",
-  spotlightIndex: 0,
+  spotlightId: null,
 };
 
 const elements = {
@@ -262,7 +263,7 @@ function renderEmojiCards(items) {
   items.forEach((item, index) => {
     const card = document.createElement("article");
     const top = document.createElement("div");
-    const emoji = document.createElement("div");
+    const emoji = createEmojiVisual(item);
     const copyButton = document.createElement("button");
     const category = document.createElement("p");
     const title = document.createElement("h3");
@@ -273,8 +274,6 @@ function renderEmojiCards(items) {
     card.style.animationDelay = `${Math.min(index * 16, 180)}ms`;
 
     top.className = "emoji-card__top";
-    emoji.className = "emoji-card__symbol";
-    emoji.textContent = item.emoji;
 
     copyButton.type = "button";
     copyButton.className = "copy-button";
@@ -330,26 +329,29 @@ function buildTags(item) {
 }
 
 function updateSpotlight(forceShuffle = false) {
-  const hasActiveFilters = Boolean(state.query) || state.activeCategory !== "All";
-  const source = hasActiveFilters ? state.filteredEmojis : state.emojis;
-
-  if (!source.length) {
+  if (!state.emojis.length) {
     elements.spotlightEmoji.textContent = String.fromCodePoint(0x1FAE5);
     elements.spotlightName.textContent = "No spotlight available";
     elements.spotlightMeta.textContent = "Adjust the search to see matching emojis.";
     return;
   }
 
-  if (forceShuffle) {
-    state.spotlightIndex = Math.floor(Math.random() * source.length);
-  } else if (state.spotlightIndex >= source.length) {
-    state.spotlightIndex = 0;
+  const hasActiveFilters = Boolean(state.query) || state.activeCategory !== "All";
+  const filteredPool = hasActiveFilters ? state.filteredEmojis : state.emojis;
+  const shufflePool = filteredPool.length ? filteredPool : state.emojis;
+
+  if (forceShuffle || !state.spotlightId) {
+    const randomIndex = Math.floor(Math.random() * shufflePool.length);
+    state.spotlightId = shufflePool[randomIndex].id;
   }
 
-  const item = source[state.spotlightIndex];
+  const item =
+    state.emojis.find((emoji) => emoji.id === state.spotlightId) ||
+    shufflePool[0] ||
+    state.emojis[0];
   const aliasText = item.aliases.length ? `:${item.aliases[0]}:` : "No alias";
 
-  elements.spotlightEmoji.textContent = item.emoji;
+  renderSpotlightEmoji(item);
   elements.spotlightName.textContent = toTitleCase(item.description);
   elements.spotlightMeta.textContent = `${item.category} - ${aliasText}`;
 }
@@ -410,6 +412,61 @@ function resetAllFilters() {
   elements.searchInput.value = "";
   syncCategoryButtons();
   scheduleFilter();
+}
+
+function createEmojiVisual(item) {
+  if (!isFlagItem(item)) {
+    const symbol = document.createElement("div");
+    symbol.className = "emoji-card__symbol";
+    symbol.textContent = item.emoji;
+    return symbol;
+  }
+
+  const flagImage = document.createElement("img");
+  flagImage.className = "emoji-card__symbol emoji-card__symbol--image";
+  flagImage.src = getFlagAssetUrl(item.emoji);
+  flagImage.alt = toTitleCase(item.description);
+  flagImage.loading = "lazy";
+  flagImage.decoding = "async";
+  flagImage.addEventListener("error", () => {
+    const fallback = document.createElement("div");
+    fallback.className = "emoji-card__symbol";
+    fallback.textContent = item.emoji;
+    flagImage.replaceWith(fallback);
+  });
+  return flagImage;
+}
+
+function renderSpotlightEmoji(item) {
+  elements.spotlightEmoji.replaceChildren();
+
+  if (!isFlagItem(item)) {
+    elements.spotlightEmoji.textContent = item.emoji;
+    return;
+  }
+
+  const flagImage = document.createElement("img");
+  flagImage.className = "spotlight-card__emoji-image";
+  flagImage.src = getFlagAssetUrl(item.emoji);
+  flagImage.alt = toTitleCase(item.description);
+  flagImage.decoding = "async";
+  flagImage.addEventListener("error", () => {
+    elements.spotlightEmoji.textContent = item.emoji;
+  });
+
+  elements.spotlightEmoji.appendChild(flagImage);
+}
+
+function isFlagItem(item) {
+  return item.category === "Flags";
+}
+
+function getFlagAssetUrl(emoji) {
+  const codepoints = Array.from(emoji, (character) => {
+    return character.codePointAt(0).toString(16);
+  }).join("-");
+
+  return `${FLAG_ASSET_BASE}/${codepoints}.svg`;
 }
 
 async function copyEmojiToClipboard(emoji, description) {
