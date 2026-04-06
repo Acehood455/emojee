@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Browse and search a full emoji collection with vanilla JavaScript."
+    />
+    <title>Emojee Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero__copy">
+          <p class="eyebrow">Vanilla JavaScript Emoji Directory</p>
+          <h1>Find the perfect emoji in seconds.</h1>
+          <p class="hero__text">
+            Search by description, alias, tag, or category and explore the full
+            collection from one clean interface.
+          </p>
+        </div>
+
+        <aside class="spotlight-card" aria-live="polite">
+          <p class="spotlight-card__label">Emoji spotlight</p>
+          <div class="spotlight-card__emoji" id="spotlight-emoji">&#10024;</div>
+          <h2 class="spotlight-card__title" id="spotlight-name">Loading...</h2>
+          <p class="spotlight-card__meta" id="spotlight-meta">
+            Fetching emoji data
+          </p>
+          <button class="ghost-button" id="shuffle-spotlight" type="button">
+            Shuffle
+          </button>
+        </aside>
+      </header>
+
+      <section class="controls-panel">
+        <label class="search-field" for="search-input">
+          <span class="search-field__icon" aria-hidden="true">&#9906;</span>
+          <input
+            id="search-input"
+            type="search"
+            autocomplete="off"
+            placeholder="Search emoji by name, alias, tag, or category..."
+          />
+        </label>
+
+        <button class="ghost-button" id="clear-search" type="button">
+          Clear
+        </button>
+      </section>
+
+      <section class="toolbar">
+        <div class="stats-grid">
+          <article class="stat-card">
+            <p class="stat-card__value" id="total-count">0</p>
+            <p class="stat-card__label">Total emojis</p>
+          </article>
+          <article class="stat-card">
+            <p class="stat-card__value" id="visible-count">0</p>
+            <p class="stat-card__label">Visible now</p>
+          </article>
+          <article class="stat-card">
+            <p class="stat-card__value stat-card__value--small" id="active-view">
+              All
+            </p>
+            <p class="stat-card__label">Current filter</p>
+          </article>
+        </div>
+
+        <div
+          class="category-row"
+          id="category-filters"
+          aria-label="Emoji categories"
+        ></div>
+      </section>
+
+      <main class="results-panel">
+        <div class="results-panel__header">
+          <div>
+            <p class="eyebrow">Emoji Results</p>
+            <h2 id="results-title">Loading emoji collection...</h2>
+          </div>
+          <p class="results-summary" id="results-summary" aria-live="polite">
+            Fetching data from the emoji source.
+          </p>
+        </div>
+
+        <div class="emoji-grid" id="emoji-grid" aria-live="polite"></div>
+
+        <section class="empty-state" id="empty-state" hidden>
+          <div class="empty-state__icon" aria-hidden="true">&#9785;</div>
+          <h3>No emojis matched your search.</h3>
+          <p>Try a different keyword like smile, food, cat, fire, or flag.</p>
+          <button class="ghost-button" id="reset-filters" type="button">
+            Reset filters
+          </button>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
