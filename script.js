@@ -147,6 +147,7 @@ function normalizeEmoji(item, index) {
       item.description,
       item.category,
       aliases.join(" "),
+      aliases.map(formatAlias).join(" "),
       tags.join(" "),
     ]
       .join(" ")
@@ -292,7 +293,7 @@ function renderEmojiCards(items) {
 
     aliases.className = "emoji-card__aliases";
     aliases.textContent = item.aliases.length
-      ? item.aliases.map((alias) => `:${alias}:`).join(" ")
+      ? `Aliases: ${item.aliases.map(formatAlias).join(", ")}`
       : "No aliases listed";
 
     tagList.className = "tag-list";
@@ -349,7 +350,9 @@ function updateSpotlight(forceShuffle = false) {
     state.emojis.find((emoji) => emoji.id === state.spotlightId) ||
     shufflePool[0] ||
     state.emojis[0];
-  const aliasText = item.aliases.length ? `:${item.aliases[0]}:` : "No alias";
+  const aliasText = item.aliases.length
+    ? `Alias: ${formatAlias(item.aliases[0])}`
+    : "No alias";
 
   renderSpotlightEmoji(item);
   elements.spotlightName.textContent = toTitleCase(item.description);
@@ -467,6 +470,10 @@ function getFlagAssetUrl(emoji) {
   }).join("-");
 
   return `${FLAG_ASSET_BASE}/${codepoints}.svg`;
+}
+
+function formatAlias(alias) {
+  return alias.replace(/_/g, " ");
 }
 
 async function copyEmojiToClipboard(emoji, description) {
