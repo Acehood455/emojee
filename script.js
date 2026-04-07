@@ -1,7 +1,8 @@
-const DATA_SOURCE = "https://akhil-06.github.io/emoji_project/emojiList.js";
+// External flag assets provide a fallback for platforms that render flag emoji poorly.
 const FLAG_ASSET_BASE = "https://twemoji.maxcdn.com/v/latest/svg";
 const numberFormatter = new Intl.NumberFormat("en-US");
 
+// Central app state keeps filtering and spotlight behavior predictable.
 const state = {
   emojis: [],
   filteredEmojis: [],
@@ -10,7 +11,9 @@ const state = {
   spotlightId: null,
 };
 
+// Cache frequently used DOM nodes once during startup.
 const elements = {
+  controlsPanel: document.querySelector(".controls-panel"),
   searchInput: document.querySelector("#search-input"),
   clearSearch: document.querySelector("#clear-search"),
   categoryFilters: document.querySelector("#category-filters"),
@@ -34,13 +37,19 @@ let toastTimer = 0;
 
 window.addEventListener("load", initializeApp);
 
+// Boot the app with loading placeholders, events, and data.
 function initializeApp() {
   renderLoadingCards();
   registerEvents();
+  syncCondensedControls();
   loadEmojis();
 }
 
+// Wire up all interactive behavior in one place.
 function registerEvents() {
+  window.addEventListener("scroll", syncCondensedControls, { passive: true });
+  window.addEventListener("resize", syncCondensedControls);
+
   elements.searchInput.addEventListener("input", (event) => {
     state.query = event.target.value.trim().toLowerCase();
     scheduleFilter();
@@ -86,7 +95,7 @@ function registerEvents() {
 
 async function loadEmojis() {
   try {
-    const emojiData = await fetchEmojiData();
+    const emojiData = getEmojiData();
     state.emojis = emojiData.map(normalizeEmoji);
     state.filteredEmojis = [...state.emojis];
 
@@ -99,38 +108,16 @@ async function loadEmojis() {
   }
 }
 
-async function fetchEmojiData() {
-  const response = await fetch(DATA_SOURCE, { mode: "cors", cache: "force-cache" });
-
-  if (!response.ok) {
-    throw new Error("Unable to fetch emoji data.");
+// Read the local emoji data file that is loaded before this script.
+function getEmojiData() {
+  if (typeof emojiList !== "undefined" && Array.isArray(emojiList)) {
+    return emojiList;
   }
 
-  const fileText = await response.text();
-  const jsonLikeText = fileText
-    .replace(/^\s*const\s+emojiList\s*=\s*/, "")
-    .replace(/;\s*$/, "");
-
-  try {
-    const parsedData = JSON.parse(jsonLikeText);
-
-    if (Array.isArray(parsedData)) {
-      return parsedData;
-    }
-  } catch (jsonError) {
-    const fallbackParser = new Function(`${fileText}; return emojiList;`);
-    const parsedData = fallbackParser();
-
-    if (Array.isArray(parsedData)) {
-      return parsedData;
-    }
-
-    throw jsonError;
-  }
-
-  throw new Error("Emoji data format is invalid.");
+  throw new Error("Local emoji data file is missing or invalid.");
 }
 
+// Normalize source data into a structure that is easy to render and search.
 function normalizeEmoji(item, index) {
   const aliases = Array.isArray(item.aliases) ? item.aliases : [];
   const tags = Array.isArray(item.tags) ? item.tags : [];
@@ -155,6 +142,7 @@ function normalizeEmoji(item, index) {
   };
 }
 
+// Build the category chips from the loaded dataset.
 function renderCategoryFilters() {
   const counts = state.emojis.reduce((map, item) => {
     map.set(item.category, (map.get(item.category) || 0) + 1);
@@ -176,6 +164,7 @@ function renderCategoryFilters() {
   syncCategoryButtons();
 }
 
+// Create one reusable category filter chip.
 function createCategoryButton(categoryName, total) {
   const button = document.createElement("button");
   const count = document.createElement("span");
@@ -193,6 +182,7 @@ function createCategoryButton(categoryName, total) {
   return button;
 }
 
+// Keep the active filter visually in sync with state.
 function syncCategoryButtons() {
   const buttons = elements.categoryFilters.querySelectorAll("[data-category]");
 
@@ -203,11 +193,30 @@ function syncCategoryButtons() {
   });
 }
 
+// Debounce filter work to the next animation frame for smoother typing.
 function scheduleFilter() {
   cancelAnimationFrame(filterFrame);
   filterFrame = requestAnimationFrame(applyFilters);
 }
 
+// Toggle the compact sticky controls state only when it improves layout.
+function syncCondensedControls() {
+  if (!elements.controlsPanel) {
+    return;
+  }
+
+  if (window.innerWidth <= 720) {
+    elements.controlsPanel.classList.remove("is-condensed");
+    return;
+  }
+
+  const panelTop = elements.controlsPanel.getBoundingClientRect().top;
+  const shouldCondense = window.scrollY > 0 && panelTop <= 12;
+
+  elements.controlsPanel.classList.toggle("is-condensed", shouldCondense);
+}
+
+// Filter emojis by both search text and selected category.
 function applyFilters() {
   state.filteredEmojis = state.emojis.filter((item) => {
     const matchesCategory =
@@ -222,6 +231,7 @@ function applyFilters() {
   updateSpotlight();
 }
 
+// Refresh counts and summary text whenever results change.
 function updateSummary() {
   const isSearching = Boolean(state.query);
   const isCategoryFiltered = state.activeCategory !== "All";
@@ -253,6 +263,7 @@ function updateSummary() {
   elements.emptyState.hidden = state.filteredEmojis.length !== 0;
 }
 
+// Render the current result set into the emoji grid.
 function renderEmojiCards(items) {
   if (!items.length) {
     elements.emojiGrid.replaceChildren();
@@ -311,6 +322,7 @@ function renderEmojiCards(items) {
   elements.emojiGrid.replaceChildren(fragment);
 }
 
+// Show a few aliases and tags as compact badges.
 function buildTags(item) {
   const tags = [];
 
@@ -329,6 +341,7 @@ function buildTags(item) {
   return tags;
 }
 
+// Spotlight stays stable during typing and only changes when shuffled or reset.
 function updateSpotlight(forceShuffle = false) {
   if (!state.emojis.length) {
     elements.spotlightEmoji.textContent = String.fromCodePoint(0x1FAE5);
@@ -359,6 +372,7 @@ function updateSpotlight(forceShuffle = false) {
   elements.spotlightMeta.textContent = `${item.category} - ${aliasText}`;
 }
 
+// Show skeleton cards while the dataset is loading.
 function renderLoadingCards() {
   const fragment = document.createDocumentFragment();
 
@@ -395,20 +409,22 @@ function renderLoadingCards() {
   elements.emojiGrid.replaceChildren(fragment);
 }
 
+// Surface a friendly fallback if the local dataset cannot be read.
 function renderErrorState() {
   elements.resultsTitle.textContent = "Emoji data could not be loaded";
   elements.resultsSummary.textContent =
-    "Check your internet connection and reload the page.";
+    "Check that emojiList.js is present and reload the page.";
   elements.emojiGrid.replaceChildren();
   elements.emptyState.hidden = false;
   elements.emptyState.querySelector("h3").textContent = "Unable to fetch emojis right now.";
   elements.emptyState.querySelector("p").textContent =
-    "The app needs the remote emoji dataset to display results.";
+    "The app needs the local emoji script dataset to display results.";
   elements.spotlightEmoji.textContent = String.fromCodePoint(0x26A0);
   elements.spotlightName.textContent = "Data source unavailable";
-  elements.spotlightMeta.textContent = "Try reloading the page.";
+  elements.spotlightMeta.textContent = "Check emojiList.js and reload the page.";
 }
 
+// Restore the default search and category view.
 function resetAllFilters() {
   state.activeCategory = "All";
   state.query = "";
@@ -417,6 +433,7 @@ function resetAllFilters() {
   scheduleFilter();
 }
 
+// Render normal emoji text or a flag-image fallback when needed.
 function createEmojiVisual(item) {
   if (!isFlagItem(item)) {
     const symbol = document.createElement("div");
@@ -440,6 +457,7 @@ function createEmojiVisual(item) {
   return flagImage;
 }
 
+// Render the spotlight emoji using the same flag fallback strategy.
 function renderSpotlightEmoji(item) {
   elements.spotlightEmoji.replaceChildren();
 
@@ -464,6 +482,7 @@ function isFlagItem(item) {
   return item.category === "Flags";
 }
 
+// Convert a flag emoji into the Twemoji asset path.
 function getFlagAssetUrl(emoji) {
   const codepoints = Array.from(emoji, (character) => {
     return character.codePointAt(0).toString(16);
@@ -472,10 +491,12 @@ function getFlagAssetUrl(emoji) {
   return `${FLAG_ASSET_BASE}/${codepoints}.svg`;
 }
 
+// Make alias labels more readable in the UI and search index.
 function formatAlias(alias) {
   return alias.replace(/_/g, " ");
 }
 
+// Copy the emoji itself, with a fallback for older clipboard support.
 async function copyEmojiToClipboard(emoji, description) {
   try {
     await navigator.clipboard.writeText(emoji);
@@ -494,6 +515,7 @@ async function copyEmojiToClipboard(emoji, description) {
   }
 }
 
+// Small toast feedback keeps copy interactions obvious to the user.
 function showToast(message) {
   window.clearTimeout(toastTimer);
   elements.toast.textContent = message;
@@ -503,6 +525,7 @@ function showToast(message) {
   }, 1800);
 }
 
+// Titles look cleaner when descriptions are title-cased for display.
 function toTitleCase(value) {
   return value.replace(/\b\w/g, (character) => character.toUpperCase());
 }

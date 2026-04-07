@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- Document metadata and shared assets -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
@@ -22,6 +23,7 @@
   </head>
   <body>
     <div class="page-shell">
+      <!-- Hero section with app branding and spotlight emoji -->
       <header class="hero">
         <div class="hero__copy">
           <p class="eyebrow">Emojee - Vanilla JavaScript Emoji Directory</p>
@@ -37,7 +39,7 @@
           <div class="spotlight-card__emoji" id="spotlight-emoji">&#10024;</div>
           <h2 class="spotlight-card__title" id="spotlight-name">Loading...</h2>
           <p class="spotlight-card__meta" id="spotlight-meta">
-            Fetching emoji data
+            Loading local emoji file
           </p>
           <button class="ghost-button" id="shuffle-spotlight" type="button">
             Shuffle
@@ -45,24 +47,25 @@
         </aside>
       </header>
 
+      <!-- Search, summary stats, and category filters -->
       <section class="controls-panel">
         <div class="controls-panel__top">
-          <label class="search-field" for="search-input">
-            <span class="search-field__icon" aria-hidden="true">&#9906;</span>
-            <input
-              id="search-input"
-              type="search"
-              autocomplete="off"
-              placeholder="Search emoji by name, alias, tag, or category..."
-            />
-          </label>
+          <div class="search-actions">
+            <label class="search-field" for="search-input">
+              <span class="search-field__icon" aria-hidden="true">&#9906;</span>
+              <input
+                id="search-input"
+                type="search"
+                autocomplete="off"
+                placeholder="Search emoji by name, alias, tag, or category..."
+              />
+            </label>
 
-          <button class="ghost-button" id="clear-search" type="button">
-            Clear
-          </button>
-        </div>
+            <button class="ghost-button" id="clear-search" type="button">
+              Clear
+            </button>
+          </div>
 
-        <div class="toolbar">
           <div class="stats-grid">
             <article class="stat-card">
               <p class="stat-card__value" id="total-count">0</p>
@@ -79,7 +82,9 @@
               <p class="stat-card__label">Current filter</p>
             </article>
           </div>
+        </div>
 
+        <div class="toolbar">
           <div
             class="category-row"
             id="category-filters"
@@ -88,6 +93,7 @@
         </div>
       </section>
 
+      <!-- Emoji results grid and empty state -->
       <main class="results-panel">
         <div class="results-panel__header">
           <div>
@@ -95,7 +101,7 @@
             <h2 id="results-title">Loading emoji collection...</h2>
           </div>
           <p class="results-summary" id="results-summary" aria-live="polite">
-            Fetching data from the emoji source.
+            Loading data from the local emoji script.
           </p>
         </div>
 
@@ -112,8 +118,11 @@
       </main>
     </div>
 
+    <!-- Lightweight feedback toast for copy actions -->
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+    <!-- Local emoji data followed by app logic -->
+    <script src="./emojiList.js"></script>
     <script src="./script.js"></script>
   </body>
 </html>
